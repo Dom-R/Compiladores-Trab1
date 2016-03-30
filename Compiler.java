@@ -80,14 +80,9 @@ public class Compiler {
 		
 		// No futuro criar uma string para salvar o nome da variavel
 		
-		if(Character.isLetter(token)) { // Verificou se tem uma letra
-			nextToken();
-			while(Character.isLetter(token) || Character.isDigit(token)) {	// Verifica se é uma letra ou numero
-				nextToken();
-			}
-		} else {
-			error("Letra esperada!");
-		}
+		// Indent
+		Ident();
+		
 		///////////////////////////////////////
 		
 		// Salvar a variavel no futuro
@@ -184,22 +179,103 @@ public class Compiler {
 	}
 	
 	//Expr ::= SimExpr [ RelOp Expr]
-	public void Expr() {}
+	public void Expr() {
+		SimExpr();
+		
+		// Verifica se tem RelOp
+		if(token == '=' || token == '#' || token == '<' || token == '>' ) {
+			nextToken();
+			Expr();
+		}
+	}
 	
 	//SimExpr ::= [Unary] Term { AddOp Term }
-	public void SimExpr() {}
+	public void SimExpr() {
+		
+		/* NOTA: Remover NextToken quando implementar a arvore */
+		
+		// Verifica se tem Unary
+		if(token == '+' || token == '-' || token == '!') {
+			nextToken(); // Unary
+		}
+		
+		// Chamar termo
+		Term();
+		
+		// Verifica se tem AddOp
+		while(token == '+' || token == '-') {
+			nextToken(); // AddOp
+			Term();
+		}
+	}
 	
 	//Term ::= Factor { MulOp Factor }
-	public void Term() {}
+	public void Term() {
+		Factor();
+		
+		// Verifica se tem MulOp
+		while(token == '*' || token == '/' || token == '%') {
+			nextToken(); // MulOp
+			Factor();
+		}
+		
+	}
 	
 	//Factor ::= LValue ‘=’ Expr | LValue | ‘(’ Expr ‘)’ | ‘r’ ‘(’ ‘)’ | ‘s’ ‘(’ ‘)’ | ‘t’ ‘(’ ‘)’
-	public void Factor() {}
+	public void Factor() {
+		
+		switch(token) {
+			case '(':
+				nextToken();
+				Expr();
+				validarToken(')');
+				break;
+			case 'r':
+				nextToken();
+				validarToken('(');
+				validarToken(')');
+				break;
+			case 's':
+				nextToken();
+				validarToken('(');
+				validarToken(')');
+				break;
+			case 't':
+				nextToken();
+				validarToken('(');
+				validarToken(')');
+				break;
+			default:
+				LValue();
+				if(token == '=') {
+					nextToken();
+					Expr();
+				}
+		}
+		
+	}
 	
 	//LValue ::= Ident | Ident ‘[’ Expr ‘]’
-	public void LValue() {}
+	public void LValue() {
+		Ident();
+		if(token == '[') {
+			nextToken();
+			Expr();
+			validarToken(']');
+		}
+	}
 	
 	//Ident ::= Letter { Letter | Digit }
-	public void Ident() {}
+	public void Ident() {
+		if(Character.isLetter(token)) { // Verificou se tem uma letra
+			nextToken();
+			while(Character.isLetter(token) || Character.isDigit(token)) {	// Verifica se é uma letra ou numero
+				nextToken();
+			}
+		} else {
+			error("Letra esperada!");
+		}
+	}
 	
 	//RelOp ::= ‘=’ | ‘#’ | ‘<’ | ‘>’
 	public void RelOp() {}
