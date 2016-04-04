@@ -1,4 +1,4 @@
-//import AST.*;
+import AST.*;
 import java.util.ArrayList;
 import java.util.Hashtable;
 

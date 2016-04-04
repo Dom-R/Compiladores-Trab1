@@ -1,6 +1,6 @@
 // comp 7
 
-//import AST.*;
+import AST.*;
 
 public class Main {
     public static void main( String []args ) {
@@ -8,8 +8,8 @@ public class Main {
         
         Compiler compiler = new Compiler();
         
-        //Program program  = compiler.compile(input);
-		compiler.compile(input);
+        Program program  = compiler.compile(input);
+		//compiler.compile(input);
         //program.genC();
         //System.out.println("Resultado da expressao " +  program.eval());
     }
