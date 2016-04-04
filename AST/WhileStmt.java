@@ -1,7 +1,7 @@
 package AST;
 import java.util.ArrayList;
 
-public class WhileStmt {
+public class WhileStmt extends Stmt {
 	private Expr expr;
 	private ArrayList<Stmt> stmt;
 	

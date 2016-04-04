@@ -12,11 +12,11 @@ public class Compiler {
 		// Atribui o primeiro char a token
         nextToken();
 		
-        Program p = new Program(Decl());
+        Program program = new Program(Decl());
         //if (tokenPos != input.length)
           //error("Fim de codigo esperado!");
           
-        return p;
+        return program;
     }
 	
 	//Decl ::= ‘v’ ‘m’ ‘(’ ‘)’ StmtBlock
@@ -33,8 +33,8 @@ public class Compiler {
 	
 	//StmtBlock ::= ‘{’ { VariableDecl } { Stmt } ‘}’
 	public StmtBlock StmtBlock() {
-		ArrayList<Variable> variableDecl = new ArrayList<Variable>();;
-		//ArrayList<> xxx; // Stmt
+		ArrayList<Variable> variableDecl = new ArrayList<Variable>();
+		ArrayList<Stmt> stmt = new ArrayList<Stmt>(); // Stmt
 		
 		validarToken('{');
 		
@@ -45,7 +45,7 @@ public class Compiler {
 		
 		// Verificar o que colocar aqui
 		while(token != '}') {
-			Stmt();
+			stmt.add(Stmt());
 		}
 		
 		validarToken('}');
@@ -86,7 +86,7 @@ public class Compiler {
 		// No futuro criar uma string para salvar o nome da variavel
 		
 		// Indent
-		Variable v = new Variable(new Type(tipo, flagArray),new Ident(Ident()));
+		Variable variable = new Variable(new Type(tipo, flagArray),Ident());
 		
 		///////////////////////////////////////
 		
@@ -94,48 +94,51 @@ public class Compiler {
 		
 		validarToken(';');
 		
-		return v;
+		return variable;
 	}
 	
 	/*----------------------------------------*/
 	
 	//Stmt ::= Expr ‘;’ | ifStmt | WhileStmt | BreakStmt | PrintStmt
-	public void Stmt() {
+	public Stmt Stmt() {
 		
 		switch(token) {
 			case 'f':
 				nextToken();
-				IfStmt();
-				break;
+				return IfStmt();
+				//break;
 			case 'w':
 				nextToken();
-				WhileStmt();
-				break;
+				return WhileStmt();
+				//break;
 			case 'b':
 				nextToken();
-				BreakStmt();
-				break;
+				return BreakStmt();
+				//break;
 			case 'p':
 				nextToken();
-				PrintStmt();
-				break;
+				return PrintStmt();
+				//break;
 			default:
-				System.out.println("Inserir Expr Aqui");
+				return Expr();
 		}
 		
 	}
 	
 	//IfStmt ::= ‘f’ ‘(’ Expr ‘)’ ‘{’ { Stmt } ‘}’ [ ‘e’ ‘{’ { Stmt } ‘}’ ]
-	public void IfStmt() {
+	public IfStmt IfStmt() {
+		Expr expr;
+		ArrayList<Stmt> stmtif = new ArrayList<Stmt>();
+		ArrayList<Stmt> stmtelse = new ArrayList<Stmt>();
 		
 		validarToken('(');
-		Expr();
+		expr = Expr();
 		validarToken(')');
 		
 		// Primeiro bloco do If
 		validarToken('{');
 		while(token != '}') {
-			Stmt();
+			stmtif.add(Stmt());
 		}
 		validarToken('}');
 		
@@ -144,135 +147,176 @@ public class Compiler {
 			nextToken();
 			validarToken('{');
 			while(token != '}') {
-				Stmt();
+				stmtelse.add(Stmt());
 			}
 			validarToken('}');
+		} else {
+			stmtelse = null;
 		}
+		
+		return new IfStmt(expr, stmtif, stmtelse);
 		
 	}
 	
 	//WhileStmt ::= ‘w’ ‘(’ Expr ‘)’ ‘{’ { Stmt } ‘}’
-	public void WhileStmt() {
+	public WhileStmt WhileStmt() {
+		Expr expr;
+		ArrayList<Stmt> stmt = new ArrayList<Stmt>();
 		
 		validarToken('(');
-		Expr();
+		expr = Expr();
 		validarToken(')');
 		
 		validarToken('{');
 		while(token != '}') {
-			Stmt();
+			stmt.add(Stmt());
 		}
 		validarToken('}');
+		
+		return new WhileStmt(expr, stmt);
 		
 	}
 	
 	//BreakStmt ::= ‘b’ ‘;’
-	public void BreakStmt() {
+	public BreakStmt BreakStmt() {
 		validarToken(';');
+		
+		return new BreakStmt();
 	}
 	
 	//PrintStmt ::= ‘p’ ‘(’ Expr { ‘,’ Expr } ‘)’
-	public void PrintStmt() {
+	public PrintStmt PrintStmt() {
+		Expr expr;
+		ArrayList<Expr> arrayExpr = new ArrayList<Expr>();
 		
 		validarToken('(');
-		Expr();
+		expr = Expr();
 		while(token != ')') {
 			validarToken(',');
-			Expr();
+			arrayExpr.add(Expr());
 		}
 		validarToken(')');
+		
+		return new PrintStmt(expr, arrayExpr);
 		
 	}
 	
 	//Expr ::= SimExpr [ RelOp Expr]
-	public void Expr() {
-		SimExpr();
+	public Expr Expr() {
+		SimExpr simexpr;
+		char relOp = '\0';
+		Expr expr = null;
+		
+		simexpr = SimExpr();
 		
 		// Verifica se tem RelOp
 		if(token == '=' || token == '#' || token == '<' || token == '>' ) {
+			relOp = token;
 			nextToken();
-			Expr();
+			expr = Expr();
 		}
+		
+		return new Expr(simexpr, relOp, expr);
 	}
 	
 	//SimExpr ::= [Unary] Term { AddOp Term }
-	public void SimExpr() {
+	public SimExpr SimExpr() {
+		char unary = '\0';
+		Term term;
 		
 		/* NOTA: Remover NextToken quando implementar a arvore */
 		
 		// Verifica se tem Unary
 		if(token == '+' || token == '-' || token == '!') {
+			unary = token;
 			nextToken(); // Unary
 		}
 		
 		// Chamar termo
-		Term();
+		term = Term();
+		
+		SimExpr simexpr = new SimExpr(unary, term);
 		
 		// Verifica se tem AddOp
 		while(token == '+' || token == '-') {
+			char addOp = token;
 			nextToken(); // AddOp
-			Term();
+			simexpr.add(addOp,Term());
 		}
+		
+		return simexpr;
 	}
 	
 	//Term ::= Factor { MulOp Factor }
-	public void Term() {
-		Factor();
+	public Term Term() {
+		Term term = new Term(Factor());
 		
 		// Verifica se tem MulOp
 		while(token == '*' || token == '/' || token == '%') {
+			char mulOp = token;
 			nextToken(); // MulOp
-			Factor();
+			term.add(mulOp,Factor());
 		}
 		
+		return term;
 	}
 	
-	//Factor ::= LValue ‘=’ Expr | LValue | ‘(’ Expr ‘)’ | ‘r’ ‘(’ ‘)’ | ‘s’ ‘(’ ‘)’ | ‘t’ ‘(’ ‘)’
-	public void Factor() {
+	//Factor ::= LValue ‘:’ Expr | LValue | ‘(’ Expr ‘)’ | ‘r’ ‘(’ ‘)’ | ‘s’ ‘(’ ‘)’ | ‘t’ ‘(’ ‘)’
+	public Factor Factor() {
 		
 		switch(token) {
 			case '(':
 				nextToken();
-				Expr();
+				Factor factor = new Factor(null,Expr(),"");
 				validarToken(')');
-				break;
+				return factor;
+				//break;
 			case 'r':
 				nextToken();
 				validarToken('(');
 				validarToken(')');
-				break;
+				return new Factor(null,null,"r()");
+				//break;
 			case 's':
 				nextToken();
 				validarToken('(');
 				validarToken(')');
-				break;
+				return new Factor(null,null,"s()");
+				//break;
 			case 't':
 				nextToken();
 				validarToken('(');
 				validarToken(')');
-				break;
+				return new Factor(null,null,"t()");
+				//break;
 			default:
-				LValue();
-				if(token == '=') {
+				LValue lvalue = LValue();
+				Expr expr = null;
+				if(token == ':') {
 					nextToken();
-					Expr();
+					expr = Expr();
 				}
+				return new Factor(lvalue, expr, "");
 		}
 		
 	}
 	
 	//LValue ::= Ident | Ident ‘[’ Expr ‘]’
-	public void LValue() {
-		Ident();
+	public LValue LValue() {
+		Ident ident = Ident();
+		Expr expr = null;
+		
 		if(token == '[') {
 			nextToken();
-			Expr();
+			expr = Expr();
 			validarToken(']');
 		}
+		
+		return new LValue(ident, expr);
 	}
 	
 	//Ident ::= Letter { Letter | Digit }
-	public String Ident() {
+	public Ident Ident() {
 		String identificador = new String();
 		
 		if(Character.isLetter(token)) { // Verificou se tem uma letra
@@ -286,7 +330,7 @@ public class Compiler {
 			error("Letra esperada!");
 		}
 		
-		return identificador;
+		return new Ident(identificador);
 	}
 	
 	//RelOp ::= ‘=’ | ‘#’ | ‘<’ | ‘>’

@@ -1,7 +1,7 @@
 package AST;
 import java.util.ArrayList;
 
-public class PrintStmt {
+public class PrintStmt extends Stmt {
 	private Expr expr;
 	private ArrayList<Expr> arrayExpr;
 	
