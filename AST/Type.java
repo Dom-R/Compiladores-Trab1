@@ -3,16 +3,16 @@ import java.util.ArrayList;
 
 public class Type {
 
-    private Boolean arrayBool; //Saber se é array (true) ou não (false)
+    private boolean arrayBool; //Saber se é array (true) ou não (false)
     private char tipo; //tipo = 'i', 'd' ou 'c'
 
-    public Type(Boolean arrayBool, char tipo) {
+    public Type(char tipo, boolean arrayBool) {
         this.arrayBool = arrayBool;
         this.tipo = tipo;
     }
 
     //Gets e Sets
-    public void setArrayBool (Boolean arrayBool) {
+    public void setArrayBool (boolean arrayBool) {
     	this.arrayBool = arrayBool;
     }
 

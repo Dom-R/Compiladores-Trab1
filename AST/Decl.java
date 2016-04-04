@@ -5,7 +5,7 @@ public class Decl {
     private StmtBlock stmtBlock;
 
     public Decl(StmtBlock stmtBlock) {
-        stmtBlock = this.stmtBlock;
+        this.stmtBlock = stmtBlock;
     }
 
     //Gets e Sets

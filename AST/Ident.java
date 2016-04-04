@@ -2,9 +2,9 @@ package AST;
 
 public class Ident {
 	
-	private char []identificador;
+	private String identificador;
 	
-	public Ident(char []string) {
+	public Ident(String string) {
 		this.identificador = string;
 	}
 	

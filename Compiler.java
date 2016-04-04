@@ -5,25 +5,22 @@ import java.util.Hashtable;
 public class Compiler {
 
 	//Program ::= Decl
-    //public Program compile( char []p_input ) {
-	public void compile( char []p_input ) {
+	public Program compile( char []p_input ) {
         input = p_input;
         tokenPos = 0;
         
 		// Atribui o primeiro char a token
         nextToken();
-        
-		Decl();
 		
-        //Program e = Decl();
+        Program p = new Program(Decl());
         //if (tokenPos != input.length)
           //error("Fim de codigo esperado!");
           
-        //return e;
+        return p;
     }
 	
 	//Decl ::= ‘v’ ‘m’ ‘(’ ‘)’ StmtBlock
-	public void Decl() {
+	public Decl Decl() {
 		
 		// Verifica se o linguagem comeca com vm()
 		validarToken('v');
@@ -31,25 +28,29 @@ public class Compiler {
 		validarToken('(');
 		validarToken(')');
 		
-		StmtBlock();
+		return new Decl(StmtBlock());
 	}
 	
 	//StmtBlock ::= ‘{’ { VariableDecl } { Stmt } ‘}’
-	public void StmtBlock() {
+	public StmtBlock StmtBlock() {
+		ArrayList<Variable> variableDecl = new ArrayList<Variable>();;
+		//ArrayList<> xxx; // Stmt
 		
 		validarToken('{');
 		
 		// Verifica se ainda ha variaveis sendo declaradas
 		while(token == 'i' || token == 'd' || token == 'c') {
-			VariableDecl();
+			variableDecl.add(VariableDecl());
 		}
 		
 		// Verificar o que colocar aqui
 		while(token != '}') {
 			Stmt();
 		}
+		
 		validarToken('}');
 		
+		return new StmtBlock(variableDecl);
 	}
 	
 	/*----------------------------------------*/
@@ -59,11 +60,14 @@ public class Compiler {
 	//Type ::= StdType | ArrayType
 	//StdType ::= ‘i’ | ‘d’ | ‘c’
 	//ArrayType ::= StdType ‘[’ ‘]’
-	public void VariableDecl() {
+	public Variable VariableDecl() {
+		char tipo;
+		boolean flagArray = false;
 		
 		// Next Token pq nao precisamos diferenciar um identificador da variavel para outra
 		// Logo podemos continuar com as verificacoes e metodos
 		// No futuro temos que substituir isso por um switch para cada tipo de identificador, removendo assim o nextToken
+		tipo = token;
 		nextToken();
 		
 		// Verificacao se eh uma Array
@@ -71,6 +75,7 @@ public class Compiler {
 		if(token == '[') {
 			nextToken();
 			validarToken(']');
+			flagArray = true;
 		}
 		
 		//////////////////////////////////////
@@ -81,7 +86,7 @@ public class Compiler {
 		// No futuro criar uma string para salvar o nome da variavel
 		
 		// Indent
-		Ident();
+		Variable v = new Variable(new Type(tipo, flagArray),new Ident(Ident()));
 		
 		///////////////////////////////////////
 		
@@ -89,6 +94,7 @@ public class Compiler {
 		
 		validarToken(';');
 		
+		return v;
 	}
 	
 	/*----------------------------------------*/
@@ -266,15 +272,21 @@ public class Compiler {
 	}
 	
 	//Ident ::= Letter { Letter | Digit }
-	public void Ident() {
+	public String Ident() {
+		String identificador = new String();
+		
 		if(Character.isLetter(token)) { // Verificou se tem uma letra
+			identificador += token;
 			nextToken();
 			while(Character.isLetter(token) || Character.isDigit(token)) {	// Verifica se é uma letra ou numero
+				identificador += token;
 				nextToken();
 			}
 		} else {
 			error("Letra esperada!");
 		}
+		
+		return identificador;
 	}
 	
 	//RelOp ::= ‘=’ | ‘#’ | ‘<’ | ‘>’
