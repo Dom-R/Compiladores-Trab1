@@ -13,8 +13,8 @@ public class Compiler {
         nextToken();
 		
         Program program = new Program(Decl());
-        //if (tokenPos != input.length)
-          //error("Fim de codigo esperado!");
+        if (tokenPos != input.length)
+          error("Fim de codigo esperado!");
           
         return program;
     }
@@ -48,7 +48,9 @@ public class Compiler {
 			stmt.add(Stmt());
 		}
 		
-		validarToken('}');
+		// Não pode usar o validarToken no final do programa, pois ele acaba andando de token, oq não deve acontecer
+		if(token != '}')
+			error("} esperado!");
 		
 		return new StmtBlock(variableDecl);
 	}
